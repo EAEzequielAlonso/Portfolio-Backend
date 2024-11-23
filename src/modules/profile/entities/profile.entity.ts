@@ -27,6 +27,6 @@ export class Profile {
     @Column({default: new Date()})
     createdAt: Date
 
-    @Column()
+    @Column({nullable:true})
     updateAt: Date
 }

@@ -1,26 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Profile } from './entities/profile.entity';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 
 @Injectable()
 export class ProfileService {
-  create(createProfileDto: CreateProfileDto) {
-    return 'This action adds a new profile';
+
+  constructor (@InjectRepository(Profile) private profileRepository: Repository<Profile>) {}
+
+  async create(perfile: CreateProfileDto): Promise<Profile> {
+    return await this.profileRepository.save(perfile);
   }
 
-  findAll() {
-    return `This action returns all profile`;
+  async find(): Promise<Profile[]> {
+    return await this.profileRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} profile`;
+  async findById(id:string): Promise<Profile> {
+    return await this.profileRepository.findOneBy({id});
   }
 
-  update(id: number, updateProfileDto: UpdateProfileDto) {
-    return `This action updates a #${id} profile`;
+  async update(id: string, profile: UpdateProfileDto): Promise<UpdateResult> {
+    return await this.profileRepository.update(id, profile);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} profile`;
+  async remove(id: string): Promise<{profileId: string, message: string}> {
+    const result: DeleteResult = await this.profileRepository.delete(id);
+    if (result.affected === 1) return {profileId: id, message: "Perfil eliminado correctamente"}
+    throw new NotFoundException ("No se encontro el perfil a eliminar");
   }
 }
