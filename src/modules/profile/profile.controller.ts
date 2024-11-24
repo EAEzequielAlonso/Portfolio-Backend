@@ -13,8 +13,8 @@ export class ProfileController {
   }
 
   @Get()
-  find() {
-    return this.profileService.find();
+  findAll() {
+    return this.profileService.findAll();
   }
 
 

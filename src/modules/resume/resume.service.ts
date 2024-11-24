@@ -1,26 +1,38 @@
-import { Injectable } from '@nestjs/common';
-import { CreateResumeDto } from './dto/create-resume.dto';
-import { UpdateResumeDto } from './dto/update-resume.dto';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Resume } from './entities/resume.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 
 @Injectable()
 export class ResumeService {
-  create(createResumeDto: CreateResumeDto) {
-    return 'This action adds a new resume';
+
+  constructor (@InjectRepository(Resume) private resumeRepository: Repository<Resume>) {}
+
+  async create(resume: Partial<Resume>): Promise<Resume> {
+    const result: Resume = await this.resumeRepository.save(resume);
+    if (!result) throw new InternalServerErrorException("No se pudo crear el Resumen");
+    return result
   }
 
-  findAll() {
-    return `This action returns all resume`;
+  async findAll(): Promise<Resume[]> {
+    return await this.resumeRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} resume`;
+  async findOne(id: string): Promise<Resume> {
+    const result: Resume = await this.resumeRepository.findOneBy({id});
+    if (!result) throw new NotFoundException("Resumen no encontrado");
+    return result
   }
 
-  update(id: number, updateResumeDto: UpdateResumeDto) {
-    return `This action updates a #${id} resume`;
+  async update(id: string, resume: Partial<Resume>): Promise<{profileId: string, message: string}> {
+    const result: UpdateResult = await this.resumeRepository.update(id, resume);
+    if (result.affected === 1) return {profileId: id, message: "Resumen actualizado correctamente"}
+    throw new NotFoundException ("Resumen no encontrado");
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} resume`;
+  async remove(id: string): Promise<{profileId: string, message: string}> {
+    const result: DeleteResult = await this.resumeRepository.delete(id);
+    if (result.affected === 1) return {profileId: id, message: "Resumen eliminado correctamente"}
+    throw new NotFoundException ("Resumen no encontrado");
   }
 }
