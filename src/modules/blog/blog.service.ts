@@ -37,7 +37,11 @@ export class BlogService {
 
   async remove(id: string): Promise<{profileId: string, message: string}> {
     const result: DeleteResult = await this.repository.delete(id);
-    if (result.affected === 1) return {profileId: id, message: "Registro eliminado correctamente"}
+    if (result.affected === 1) {
+      const img = (await this.repository.findOneBy({id})).image;
+      this.cloudinaryService.deleteImage(img);
+      return {profileId: id, message: "Registro eliminado correctamente"}
+    } 
     throw new NotFoundException ("Registro no encontrado");
   }
 }
