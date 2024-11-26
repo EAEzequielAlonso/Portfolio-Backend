@@ -1,26 +1,38 @@
-import { Injectable } from '@nestjs/common';
-import { CreateActivityDto } from './dto/create-activity.dto';
-import { UpdateActivityDto } from './dto/update-activity.dto';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Activity } from './entities/activity.entity';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 
 @Injectable()
 export class ActivityService {
-  create(createActivityDto: CreateActivityDto) {
-    return 'This action adds a new activity';
+  
+  constructor (@InjectRepository(Activity) private activityRepository: Repository<Activity>) {}
+  
+  async create(activity: Partial<Activity>): Promise<Activity> {
+    const result: Activity = await this.activityRepository.save(activity);
+    if (!result) throw new InternalServerErrorException("No se pudo crear la actividad");
+    return result
   }
 
-  findAll() {
-    return `This action returns all activity`;
+  async findAll(): Promise<Activity[]> {
+    return await this.activityRepository.find({order: {createdAt:"DESC"}});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} activity`;
+  async findOne(id: string): Promise<Activity> {
+    const result: Activity = await this.activityRepository.findOneBy({id});
+    if (!result) throw new NotFoundException("Actividad no encontrado");
+    return result
   }
 
-  update(id: number, updateActivityDto: UpdateActivityDto) {
-    return `This action updates a #${id} activity`;
+  async update(id: string, activity: Partial<Activity>): Promise<{profileId: string, message: string}> {
+    const result: UpdateResult = await this.activityRepository.update(id, activity);
+    if (result.affected === 1) return {profileId: id, message: "Actividad actualizado correctamente"}
+    throw new NotFoundException ("Actividad no encontrado");
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} activity`;
+  async remove(id: string): Promise<{profileId: string, message: string}> {
+    const result: DeleteResult = await this.activityRepository.delete(id);
+    if (result.affected === 1) return {profileId: id, message: "Actividad eliminado correctamente"}
+    throw new NotFoundException ("Actividad no encontrado");
   }
 }

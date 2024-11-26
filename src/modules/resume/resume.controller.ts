@@ -19,16 +19,16 @@ export class ResumeController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.resumeService.findOne(+id);
+    return this.resumeService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateResumeDto: UpdateResumeDto) {
-    return this.resumeService.update(+id, updateResumeDto);
+    return this.resumeService.update(id, updateResumeDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.resumeService.remove(+id);
+    return this.resumeService.remove(id);
   }
 }

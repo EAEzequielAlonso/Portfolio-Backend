@@ -19,16 +19,16 @@ export class SoftskillController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.softskillService.findOne(+id);
+    return this.softskillService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSoftskillDto: UpdateSoftskillDto) {
-    return this.softskillService.update(+id, updateSoftskillDto);
+    return this.softskillService.update(id, updateSoftskillDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.softskillService.remove(+id);
+    return this.softskillService.remove(id);
   }
 }

@@ -3,36 +3,36 @@ import { Resume } from './entities/resume.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 
-@Injectable()
+@Injectable() 
 export class ResumeService {
 
-  constructor (@InjectRepository(Resume) private resumeRepository: Repository<Resume>) {}
+  constructor (@InjectRepository(Resume) private repository: Repository<Resume>) {}
 
-  async create(resume: Partial<Resume>): Promise<Resume> {
-    const result: Resume = await this.resumeRepository.save(resume);
-    if (!result) throw new InternalServerErrorException("No se pudo crear el Resumen");
+  async create(newRegister: Partial<Resume>): Promise<Resume> {
+    const result: Resume = await this.repository.save(newRegister);
+    if (!result) throw new InternalServerErrorException("No se pudo crear el registro");
     return result
   }
 
   async findAll(): Promise<Resume[]> {
-    return await this.resumeRepository.find();
+    return await this.repository.find({order: {createdAt: "DESC"}});
   }
 
   async findOne(id: string): Promise<Resume> {
-    const result: Resume = await this.resumeRepository.findOneBy({id});
-    if (!result) throw new NotFoundException("Resumen no encontrado");
+    const result: Resume = await this.repository.findOneBy({id});
+    if (!result) throw new NotFoundException("Registro no encontrado");
     return result
   }
 
-  async update(id: string, resume: Partial<Resume>): Promise<{profileId: string, message: string}> {
-    const result: UpdateResult = await this.resumeRepository.update(id, resume);
-    if (result.affected === 1) return {profileId: id, message: "Resumen actualizado correctamente"}
-    throw new NotFoundException ("Resumen no encontrado");
+  async update(id: string, updateRegister: Partial<Resume>): Promise<{profileId: string, message: string}> {
+    const result: UpdateResult = await this.repository.update(id, updateRegister);
+    if (result.affected === 1) return {profileId: id, message: "Registro actualizado correctamente"}
+    throw new NotFoundException ("Registro no encontrado");
   }
 
   async remove(id: string): Promise<{profileId: string, message: string}> {
-    const result: DeleteResult = await this.resumeRepository.delete(id);
-    if (result.affected === 1) return {profileId: id, message: "Resumen eliminado correctamente"}
-    throw new NotFoundException ("Resumen no encontrado");
+    const result: DeleteResult = await this.repository.delete(id);
+    if (result.affected === 1) return {profileId: id, message: "Registro eliminado correctamente"}
+    throw new NotFoundException ("Registro no encontrado");
   }
 }

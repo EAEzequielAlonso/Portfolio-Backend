@@ -1,26 +1,38 @@
-import { Injectable } from '@nestjs/common';
-import { CreateExperienceDto } from './dto/create-experience.dto';
-import { UpdateExperienceDto } from './dto/update-experience.dto';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Experience } from './entities/experience.entity';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class ExperienceService {
-  create(createExperienceDto: CreateExperienceDto) {
-    return 'This action adds a new experience';
+
+  constructor (@InjectRepository(Experience) private repository: Repository<Experience>) {}
+
+  async create(newRegister: Partial<Experience>): Promise<Experience> {
+    const result: Experience = await this.repository.save(newRegister);
+    if (!result) throw new InternalServerErrorException("No se pudo crear el registro");
+    return result
   }
 
-  findAll() {
-    return `This action returns all experience`;
+  async findAll(): Promise<Experience[]> {
+    return await this.repository.find({order: {createdAt: "DESC"}});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} experience`;
+  async findOne(id: string): Promise<Experience> {
+    const result: Experience = await this.repository.findOneBy({id});
+    if (!result) throw new NotFoundException("Registro no encontrado");
+    return result
   }
 
-  update(id: number, updateExperienceDto: UpdateExperienceDto) {
-    return `This action updates a #${id} experience`;
+  async update(id: string, updateRegister: Partial<Experience>): Promise<{profileId: string, message: string}> {
+    const result: UpdateResult = await this.repository.update(id, updateRegister);
+    if (result.affected === 1) return {profileId: id, message: "Registro actualizado correctamente"}
+    throw new NotFoundException ("Registro no encontrado");
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} experience`;
+  async remove(id: string): Promise<{profileId: string, message: string}> {
+    const result: DeleteResult = await this.repository.delete(id);
+    if (result.affected === 1) return {profileId: id, message: "Registro eliminado correctamente"}
+    throw new NotFoundException ("Registro no encontrado");
   }
 }

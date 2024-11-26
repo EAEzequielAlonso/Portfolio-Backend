@@ -1,26 +1,37 @@
-import { Injectable } from '@nestjs/common';
-import { CreateLenguageDto } from './dto/create-lenguage.dto';
-import { UpdateLenguageDto } from './dto/update-lenguage.dto';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Lenguage } from './entities/lenguage.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 
 @Injectable()
 export class LenguageService {
-  create(createLenguageDto: CreateLenguageDto) {
-    return 'This action adds a new lenguage';
+  constructor (@InjectRepository(Lenguage) private repository: Repository<Lenguage>) {}
+
+  async create(newRegister: Partial<Lenguage>): Promise<Lenguage> {
+    const result: Lenguage = await this.repository.save(newRegister);
+    if (!result) throw new InternalServerErrorException("No se pudo crear el registro");
+    return result
   }
 
-  findAll() {
-    return `This action returns all lenguage`;
+  async findAll(): Promise<Lenguage[]> {
+    return await this.repository.find({order: {createdAt: "DESC"}});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} lenguage`;
+  async findOne(id: string): Promise<Lenguage> {
+    const result: Lenguage = await this.repository.findOneBy({id});
+    if (!result) throw new NotFoundException("Registro no encontrado");
+    return result
   }
 
-  update(id: number, updateLenguageDto: UpdateLenguageDto) {
-    return `This action updates a #${id} lenguage`;
+  async update(id: string, updateRegister: Partial<Lenguage>): Promise<{profileId: string, message: string}> {
+    const result: UpdateResult = await this.repository.update(id, updateRegister);
+    if (result.affected === 1) return {profileId: id, message: "Registro actualizado correctamente"}
+    throw new NotFoundException ("Registro no encontrado");
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} lenguage`;
+  async remove(id: string): Promise<{profileId: string, message: string}> {
+    const result: DeleteResult = await this.repository.delete(id);
+    if (result.affected === 1) return {profileId: id, message: "Registro eliminado correctamente"}
+    throw new NotFoundException ("Registro no encontrado");
   }
 }

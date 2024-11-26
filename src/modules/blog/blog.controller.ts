@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, FileTypeValidator, MaxFileSizeValidator, ParseFilePipe, UploadedFile } from '@nestjs/common';
 import { BlogService } from './blog.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
@@ -8,8 +8,19 @@ export class BlogController {
   constructor(private readonly blogService: BlogService) {}
 
   @Post()
-  create(@Body() createBlogDto: CreateBlogDto) {
-    return this.blogService.create(createBlogDto);
+  create(@Body() createBlogDto: CreateBlogDto, 
+        @UploadedFile(new ParseFilePipe({
+          validators: [
+              new MaxFileSizeValidator ({
+                  maxSize: 2000000,
+                  message: "El Archivo debe ser menor a 2MB",
+              }),
+              new FileTypeValidator({
+                  fileType: /(.jpg|.jpeg|.png|.webp)$/,
+              })
+            ]
+          })) file: Express.Multer.File) {
+    return this.blogService.create(createBlogDto, file);
   }
 
   @Get()
@@ -19,16 +30,16 @@ export class BlogController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.blogService.findOne(+id);
+    return this.blogService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBlogDto: UpdateBlogDto) {
-    return this.blogService.update(+id, updateBlogDto);
+    return this.blogService.update(id, updateBlogDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.blogService.remove(+id);
+    return this.blogService.remove(id);
   }
 }
